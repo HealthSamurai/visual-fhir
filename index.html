@@ -3,20 +3,24 @@
 <style>
 
 .links line {
-  stroke: #888;
+    /* stroke: #888; */
   stroke-opacity: 0.1;
 }
 
+ body,svg {
+   background-color: #222;
+ }
+
 .nodes circle {
-  stroke: #ddd;
-  opacity: 0.8;
-    /* fill: #f1f1f1; */
+  stroke: #222;
+  opacity: 0.3;
   stroke-width: 1px;
 }
 
 text {
   font-family: sans-serif;
-  opacity: 0.7;
+  opacity: 0.8;
+    /* fill: white; */
     /* font-size: 12px; */
 }
 
@@ -34,9 +38,9 @@ var color = d3.scaleOrdinal(d3.schemeCategory20);
 var simulation = d3.forceSimulation()
                    .force("x",d3.forceX(width/2).strength(0.5))
                    .force("y",d3.forceY(height/2).strength(0.5))
-                   .force("link", d3.forceLink().id(function(d) { return d.id; }))
+                   .force("link", d3.forceLink().strength(0.01).id(function(d) { return d.id; }))
                    .force("charge",
-                          d3.forceManyBody().strength(function(d){return - ((d.incom || 1)*300 + 200);})
+                          d3.forceManyBody().strength(function(d){return - ((d.incom || 1)*300 + 400);})
                        /* d3.forceManyBody().strength(-2000) */
                    )
  /* .force("center", d3.forceCenter(width / 2, height / 2)); */
@@ -48,7 +52,9 @@ d3.json("data.json", function(error, graph) {
       .attr("class", "links")
     .selectAll("line")
     .data(graph.links)
-    .enter().append("line")
+    .enter()
+    .append("line")
+                .attr("stroke", function(d) {return d3.rgb(color(d.group)); })
      /* .attr("stroke-width", function(d) { return Math.sqrt(d.value); }); */
 
   var node = svg.append("g")
@@ -59,7 +65,7 @@ d3.json("data.json", function(error, graph) {
     
   var circles = node.append("circle")
       .attr("r", function(d){ return (d.incom || 1) + 5; })
-      .attr("fill", function(d) { return color(d.group); })
+      .attr("fill", function(d) { return d3.rgb(color(d.group)).darker(1); })
       .call(d3.drag()
           .on("start", dragstarted)
           .on("drag", dragged)
@@ -67,11 +73,17 @@ d3.json("data.json", function(error, graph) {
 
   var lables = node.append("text")
       .text(function(d) {
-        return d.id + ' (' + (d.incom || 0) + ')';
+        return d.id + "\n (" + (d.incom || 0) + ')';
       })
       .attr("font-size",function(d){ return 10 + (Math.log2((d.incom || 1) + 1)); })
+      .attr("fill", function(d) { return d3.rgb(color(d.group)).brighter(1); })
+      .attr("text-ancor","middle")
       .attr('y', 0)
       .attr('x', function(d) { return - (d.incom || 1)/2; })
+      .call(d3.drag()
+              .on("start", dragstarted)
+              .on("drag", dragged)
+              .on("end", dragended));
 
   node.append("title")
       .text(function(d) { return d.id; });

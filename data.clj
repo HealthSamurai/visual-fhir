@@ -90,6 +90,25 @@
                  :InsurancePlan
                   
                   }
+     :MedicationDefinition {
+                           :MedicinalProduct 
+                           :MedicinalProductAuthorization 
+                           :MedicinalProductContraindication 
+                           :MedicinalProductIndication 
+                           :MedicinalProductIngredient 
+                           :MedicinalProductInteraction 
+                           :MedicinalProductManufactured 
+                           :MedicinalProductPackaged 
+                           :MedicinalProductPharmaceutical 
+                           :MedicinalProductUndesirableEffect 
+                           :SubstanceNucleicAcid 
+                           :SubstancePolymer 
+                           :SubstanceProtein 
+                           :SubstanceReferenceInformation 
+                           :SubstanceSpecification 
+                           :SubstanceSourceMaterial 
+                            
+                            }
      })
 
   (def grp-idx
