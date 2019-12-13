@@ -4,7 +4,7 @@
 
 .links line {
     /* stroke: #888; */
-  stroke-opacity: 0.1;
+    /* stroke-opacity: 0.1; */
 }
 
  body,svg {
@@ -13,15 +13,22 @@
 
 .nodes circle {
   stroke: #222;
-  opacity: 0.3;
   stroke-width: 1px;
+  cursor: pointer;
+}
+
+.nodes circle:hover {
+    opacity: 0.8;
 }
 
 text {
   font-family: sans-serif;
-  opacity: 0.8;
-    /* fill: white; */
-    /* font-size: 12px; */
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+text:hover {
+    opacity: 0.9;
 }
 
 </style>
@@ -39,14 +46,13 @@ var simulation = d3.forceSimulation()
                    .force("x",d3.forceX(width/2).strength(0.5))
                    .force("y",d3.forceY(height/2).strength(0.5))
                    .force("link", d3.forceLink().strength(0.01).id(function(d) { return d.id; }))
-                   .force("charge",
-                          d3.forceManyBody().strength(function(d){return - ((d.incom || 1)*300 + 400);})
-                       /* d3.forceManyBody().strength(-2000) */
-                   )
- /* .force("center", d3.forceCenter(width / 2, height / 2)); */
+                   .force("charge", d3.forceManyBody().strength(function(d){return - ((d.incom || 1)*300 + 400);}))
 
 d3.json("data.json", function(error, graph) {
   if (error) throw error;
+
+  var prevd = null;
+  var prevdi = null;
 
   var link = svg.append("g")
       .attr("class", "links")
@@ -54,36 +60,69 @@ d3.json("data.json", function(error, graph) {
     .data(graph.links)
     .enter()
     .append("line")
-                .attr("stroke", function(d) {return d3.rgb(color(d.group)); })
-     /* .attr("stroke-width", function(d) { return Math.sqrt(d.value); }); */
+    .attr("stroke", function(d) {console.log("linkstr"); return d3.rgb(color(d.group)); })
+    .attr("stroke-opacity", 0.05);
 
   var node = svg.append("g")
       .attr("class", "nodes")
     .selectAll("g")
     .data(graph.nodes)
     .enter().append("g")
-    
+
+
+     function nodeClick(d) {
+          if(prevd){
+             prevd.incom = prevdi;
+          }
+          if( prevd != d){
+            prevd = d;
+            prevdi = d.incom;
+            d.incom = 70;
+          } else {
+            prevd = null;
+            prevdi = null;
+          }
+          simulation
+              .nodes(graph.nodes)
+              .on("tick", ticked)
+              .alphaTarget(0.3)
+              .restart();
+
+          circles
+              .attr("r", function(d){ return (d.incom || 1) + 9; })
+              .attr("opacity", function(d){
+                  if(d == prevd){return 0.9;}else {return 0.3}
+              }) 
+
+          link.attr("stroke-opacity", function(d) {
+              console.log('link',d, prevd);
+              if(prevd && (d.target.id == prevd.id || d.source.id == prevd.id)){
+                  return 0.5;
+              } else {
+                  return 0.05;
+              }
+          })
+
+          setTimeout(function(){
+              simulation.alphaTarget(0)
+          }, 1000);
+      }
   var circles = node.append("circle")
-      .attr("r", function(d){ return (d.incom || 1) + 5; })
+      .attr("r", function(d){ return (d.incom || 1) + 12; })
       .attr("fill", function(d) { return d3.rgb(color(d.group)).darker(1); })
-      .call(d3.drag()
-          .on("start", dragstarted)
-          .on("drag", dragged)
-          .on("end", dragended));
+      .attr("opacity", 0.3) 
+      .on("click", nodeClick)
 
   var lables = node.append("text")
       .text(function(d) {
-        return d.id + "\n (" + (d.incom || 0) + ')';
+        return d.id;
       })
       .attr("font-size",function(d){ return 10 + (Math.log2((d.incom || 1) + 1)); })
       .attr("fill", function(d) { return d3.rgb(color(d.group)).brighter(1); })
       .attr("text-ancor","middle")
       .attr('y', 0)
       .attr('x', function(d) { return - (d.incom || 1)/2; })
-      .call(d3.drag()
-              .on("start", dragstarted)
-              .on("drag", dragged)
-              .on("end", dragended));
+      .on("click", nodeClick)
 
   node.append("title")
       .text(function(d) { return d.id; });
@@ -96,6 +135,7 @@ d3.json("data.json", function(error, graph) {
       .links(graph.links);
 
   function ticked() {
+    console.log('ticked');
     link
         .attr("x1", function(d) { return d.source.x; })
         .attr("y1", function(d) { return d.source.y; })
