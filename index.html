@@ -60,7 +60,7 @@ d3.json("data.json", function(error, graph) {
     .data(graph.links)
     .enter()
     .append("line")
-    .attr("stroke", function(d) {console.log("linkstr"); return d3.rgb(color(d.group)); })
+    .attr("stroke", function(d) {return d3.rgb(color(d.group)); })
     .attr("stroke-opacity", 0.05);
 
   var node = svg.append("g")
@@ -95,7 +95,6 @@ d3.json("data.json", function(error, graph) {
               }) 
 
           link.attr("stroke-opacity", function(d) {
-              console.log('link',d, prevd);
               if(prevd && (d.target.id == prevd.id || d.source.id == prevd.id)){
                   return 0.5;
               } else {
@@ -135,7 +134,6 @@ d3.json("data.json", function(error, graph) {
       .links(graph.links);
 
   function ticked() {
-    console.log('ticked');
     link
         .attr("x1", function(d) { return d.source.x; })
         .attr("y1", function(d) { return d.source.y; })
